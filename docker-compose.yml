@@ -1,0 +1,33 @@
+name: nekoku
+
+services:
+  nekoku-postgres:
+    image: postgres:16-alpine
+    container_name: nekoku_postgres_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nekoku_user
+      POSTGRES_PASSWORD: nekoku_secret_pass
+      POSTGRES_DB: nekoku_db
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    networks:
+      - nekoku_network
+    volumes:
+      - nekoku_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nekoku_user -d nekoku_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  nekoku_network:
+    name: nekoku_network
+    driver: bridge
+
+volumes:
+  nekoku_pgdata:
+    name: nekoku_pgdata
+    driver: local

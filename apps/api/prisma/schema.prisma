@@ -1,0 +1,222 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// -----------------------------------------------------
+// ENUMS
+// -----------------------------------------------------
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum LifeStage {
+  KITTEN      // 0 - 12 months
+  ADULT       // 1 - 7 years
+  SENIOR      // 7+ years
+  ALL_STAGES  // Suitable for all ages
+}
+
+enum HealthFocusType {
+  URINARY_CARE
+  HAIRBALL_CONTROL
+  SENSITIVE_DIGESTION
+  WEIGHT_MANAGEMENT
+  KIDNEY_SUPPORT
+  SKIN_AND_COAT
+  DENTAL_CARE
+  GENERAL_WELLNESS
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+// -----------------------------------------------------
+// USERS & CAT PROFILES
+// -----------------------------------------------------
+model User {
+  id            String       @id @default(uuid())
+  email         String       @unique
+  passwordHash  String
+  fullName      String
+  phoneNumber   String?
+  role          Role         @default(CUSTOMER)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  catProfiles   CatProfile[]
+  addresses     Address[]
+  orders        Order[]
+  cart          Cart?
+}
+
+model CatProfile {
+  id              String             @id @default(uuid())
+  userId          String
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  avatarUrl       String?
+  breed           String?
+  birthDate       DateTime?
+  lifeStage       LifeStage          @default(ADULT)
+  weightKg        Float?
+  isNeutered      Boolean            @default(false)
+  allergies       String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  healthConcerns  CatHealthConcern[]
+}
+
+model CatHealthConcern {
+  id            String          @id @default(uuid())
+  catProfileId  String
+  catProfile    CatProfile      @relation(fields: [catProfileId], references: [id], onDelete: Cascade)
+  condition     HealthFocusType
+
+  @@unique([catProfileId, condition])
+}
+
+model Address {
+  id            String    @id @default(uuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipientName String
+  phone         String
+  streetAddress String
+  city          String
+  postalCode    String
+  isDefault     Boolean   @default(false)
+  
+  orders        Order[]
+}
+
+// -----------------------------------------------------
+// CATALOG & PRODUCTS
+// -----------------------------------------------------
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  imageUrl    String?
+  products    Product[]
+  createdAt   DateTime  @default(now())
+}
+
+model Product {
+  id              String               @id @default(uuid())
+  categoryId      String
+  category        Category             @relation(fields: [categoryId], references: [id])
+  name            String
+  slug            String               @unique
+  brand           String
+  description     String
+  ingredients     String?              // Dietary ingredients & analysis
+  price           Decimal              @db.Decimal(10, 2)
+  stockQuantity   Int                  @default(0)
+  targetLifeStage LifeStage            @default(ALL_STAGES)
+  isSpecialtyDiet Boolean              @default(false)
+  isFeatured      Boolean              @default(false)
+  rating          Float                @default(5.0)
+  ratingCount     Int                  @default(0)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  images          ProductImage[]
+  healthFocuses   ProductHealthFocus[]
+  cartItems       CartItem[]
+  orderItems      OrderItem[]
+
+  @@index([targetLifeStage])
+  @@index([categoryId])
+  @@index([brand])
+}
+
+model ProductImage {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  isPrimary Boolean  @default(false)
+}
+
+model ProductHealthFocus {
+  id        String          @id @default(uuid())
+  productId String
+  product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  focus     HealthFocusType
+
+  @@unique([productId, focus])
+}
+
+// -----------------------------------------------------
+// CART & SHOPPING
+// -----------------------------------------------------
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int      @default(1)
+
+  @@unique([cartId, productId])
+}
+
+// -----------------------------------------------------
+// ORDERS & TRANSACTIONS
+// -----------------------------------------------------
+model Order {
+  id              String       @id @default(uuid())
+  orderNumber     String       @unique
+  userId          String
+  user            User         @relation(fields: [userId], references: [id])
+  addressId       String?
+  deliveryAddress Address?     @relation(fields: [addressId], references: [id])
+  
+  subtotal        Decimal      @db.Decimal(10, 2)
+  shippingFee     Decimal      @db.Decimal(10, 2) @default(0.00)
+  totalAmount     Decimal      @db.Decimal(10, 2)
+  status          OrderStatus  @default(PENDING_PAYMENT)
+  paymentMethod   String       @default("MOCK_PAYMENT_GATEWAY")
+  paymentId       String?
+  paidAt          DateTime?
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  items           OrderItem[]
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  
+  productName String
+  unitPrice   Decimal  @db.Decimal(10, 2)
+  quantity    Int
+  totalPrice  Decimal  @db.Decimal(10, 2)
+}

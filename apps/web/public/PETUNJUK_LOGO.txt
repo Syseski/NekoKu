@@ -1,0 +1,22 @@
+=====================================================
+PANDUAN MELETAKKAN LOGO NEKOKU (LOGO GUIDE)
+=====================================================
+
+Anda boleh meletakkan fail gambar logo anda di dalam folder ini:
+Path folder: apps/web/public/
+
+Pilihan Nama Fail Yang Disokong:
+1. logo.png  (Disyorkan: format PNG dengan latar belakang lutsinar / transparent)
+2. logo.svg  (Format vektor SVG)
+3. logo.jpg / logo.webp
+
+Cara Meletakkan Logo:
+1. Simpan gambar logo anda dengan nama `logo.png` (atau `logo.svg`).
+2. Masukkan (copy & paste / drag & drop) fail tersebut ke dalam folder:
+   `/Users/chikia/Web project/NekoKu/apps/web/public/logo.png`
+3. Web akan mengesan dan memaparkan logo anda secara automatik di Navbar & Footer!
+
+Cadangan Saiz Logo:
+- Nisbah 1:1 (Segi empat sama) atau Landskap (Horizontal)
+- Resolusi disyorkan: 256x256 px atau 512x512 px (PNG)
+=====================================================
