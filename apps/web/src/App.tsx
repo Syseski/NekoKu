@@ -5,6 +5,7 @@ import { Footer } from './components/layout/Footer';
 import { HomePage } from './pages/HomePage';
 import { CatProfilesPage } from './pages/CatProfilesPage';
 import { OrdersPage } from './pages/OrdersPage';
+import { AccountPage } from './pages/AccountPage';
 import { AdminPage } from './pages/AdminPage';
 import { CartDrawer } from './components/cart/CartDrawer';
 import { CheckoutModal } from './components/checkout/CheckoutModal';
@@ -41,6 +42,14 @@ export const App: React.FC = () => {
         <main className="flex-1">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route
+              path="/account"
+              element={<AccountPage />}
+            />
+            <Route
+              path="/profile"
+              element={<AccountPage />}
+            />
             <Route
               path="/cats"
               element={user && !isAdmin ? <CatProfilesPage /> : <Navigate to="/" replace />}

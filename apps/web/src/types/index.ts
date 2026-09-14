@@ -18,15 +18,34 @@ export type OrderStatus =
   | 'PROCESSING'
   | 'SHIPPED'
   | 'DELIVERED'
-  | 'CANCELLED';
+  | 'CANCELLED'
+  | 'RETURN_REFUND';
+
+export interface Address {
+  id: string;
+  userId: string;
+  recipientName: string;
+  phone: string;
+  streetAddress: string;
+  city: string;
+  state?: string;
+  postalCode: string;
+  country: string;
+  isDefault: boolean;
+  createdAt?: string;
+}
 
 export interface User {
   id: string;
   email: string;
   fullName: string;
   phoneNumber?: string;
+  avatarUrl?: string;
+  gender?: string;
+  birthDate?: string;
   role: Role;
   catProfiles?: CatProfile[];
+  addresses?: Address[];
 }
 
 export interface CatHealthConcern {
@@ -129,6 +148,8 @@ export interface Order {
   status: OrderStatus;
   paymentMethod: string;
   paidAt?: string;
+  deliveredAt?: string;
+  deliveryAddress?: Address;
   createdAt: string;
   items: OrderItem[];
 }

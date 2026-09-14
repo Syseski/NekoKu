@@ -150,3 +150,53 @@ export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
     res.status(500).json({ success: false, message: error.message || 'Failed to fetch user' });
   }
 };
+
+const updateProfileSchema = z.object({
+  fullName: z.string().min(1, 'Name cannot be empty').optional(),
+  phoneNumber: z.string().optional().nullable(),
+  avatarUrl: z.string().optional().nullable(),
+  gender: z.string().optional().nullable(),
+  birthDate: z.string().optional().nullable().transform((val) => (val ? new Date(val) : null)),
+});
+
+export const updateProfile = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ success: false, message: 'Unauthorized' });
+      return;
+    }
+
+    const validated = updateProfileSchema.parse(req.body);
+
+    const updated = await prisma.user.update({
+      where: { id: req.user.id },
+      data: {
+        ...(validated.fullName !== undefined && { fullName: validated.fullName }),
+        ...(validated.phoneNumber !== undefined && { phoneNumber: validated.phoneNumber }),
+        ...(validated.avatarUrl !== undefined && { avatarUrl: validated.avatarUrl }),
+        ...(validated.gender !== undefined && { gender: validated.gender }),
+        ...(validated.birthDate !== undefined && { birthDate: validated.birthDate }),
+      },
+      include: {
+        catProfiles: {
+          include: { healthConcerns: true },
+        },
+        addresses: true,
+      },
+    });
+
+    const { passwordHash: _, ...safeUser } = updated;
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: safeUser,
+    });
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ success: false, message: error.errors[0].message });
+      return;
+    }
+    res.status(500).json({ success: false, message: error.message || 'Failed to update profile' });
+  }
+};

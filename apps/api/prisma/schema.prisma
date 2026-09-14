@@ -40,6 +40,7 @@ enum OrderStatus {
   SHIPPED
   DELIVERED
   CANCELLED
+  RETURN_REFUND
 }
 
 // -----------------------------------------------------
@@ -51,6 +52,9 @@ model User {
   passwordHash  String
   fullName      String
   phoneNumber   String?
+  avatarUrl     String?
+  gender        String?
+  birthDate     DateTime?
   role          Role         @default(CUSTOMER)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
@@ -96,7 +100,9 @@ model Address {
   phone         String
   streetAddress String
   city          String
+  state         String?
   postalCode    String
+  country       String    @default("Malaysia")
   isDefault     Boolean   @default(false)
   
   orders        Order[]

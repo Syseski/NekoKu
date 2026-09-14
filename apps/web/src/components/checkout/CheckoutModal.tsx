@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCartStore } from '../../store/cartStore';
 import { useAuthStore } from '../../store/authStore';
-import { X, CheckCircle, ShieldCheck, PackageCheck, ArrowRight } from 'lucide-react';
+import { api } from '../../services/api';
+import { Address } from '../../types';
+import { X, CheckCircle, ShieldCheck, PackageCheck, ArrowRight, MapPin, ChevronDown } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
 import { formatRM } from '../../utils/format';
@@ -11,14 +13,53 @@ export const CheckoutModal: React.FC = () => {
   const { user } = useAuthStore();
   const navigate = useNavigate();
 
-  const [recipientName, setRecipientName] = useState(user?.fullName || 'Aria Takahashi');
-  const [streetAddress, setStreetAddress] = useState('742 Evergreen Sakura Terrace, Apt 4B');
-  const [city, setCity] = useState('San Francisco');
-  const [postalCode, setPostalCode] = useState('94107');
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string>('');
+  const [recipientName, setRecipientName] = useState('');
+  const [streetAddress, setStreetAddress] = useState('');
+  const [city, setCity] = useState('Kuala Lumpur');
+  const [postalCode, setPostalCode] = useState('50480');
   const [cardNumber, setCardNumber] = useState('4242 •••• •••• 4242');
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderCompleted, setOrderCompleted] = useState<any>(null);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (isCheckoutModalOpen && user) {
+      api.get('/addresses')
+        .then((res) => {
+          if (res.data.success && res.data.data.length > 0) {
+            const addrs: Address[] = res.data.data;
+            setAddresses(addrs);
+            const defaultAddr = addrs.find((a) => a.isDefault) || addrs[0];
+            setSelectedAddressId(defaultAddr.id);
+            setRecipientName(defaultAddr.recipientName);
+            setStreetAddress(defaultAddr.streetAddress);
+            setCity(defaultAddr.city);
+            setPostalCode(defaultAddr.postalCode);
+          } else {
+            setRecipientName(user.fullName || '');
+            setStreetAddress('');
+            setCity('Kuala Lumpur');
+            setPostalCode('50480');
+          }
+        })
+        .catch(() => {
+          setRecipientName(user.fullName || '');
+        });
+    }
+  }, [isCheckoutModalOpen, user]);
+
+  const handleSelectAddress = (addrId: string) => {
+    setSelectedAddressId(addrId);
+    const found = addresses.find((a) => a.id === addrId);
+    if (found) {
+      setRecipientName(found.recipientName);
+      setStreetAddress(found.streetAddress);
+      setCity(found.city);
+      setPostalCode(found.postalCode);
+    }
+  };
 
   if (!isCheckoutModalOpen) return null;
 
@@ -36,6 +77,7 @@ export const CheckoutModal: React.FC = () => {
       await new Promise((resolve) => setTimeout(resolve, 1200));
 
       const order = await simulateCheckout({
+        addressId: selectedAddressId || undefined,
         recipientName,
         streetAddress,
         city,
@@ -141,9 +183,29 @@ export const CheckoutModal: React.FC = () => {
                 </div>
               )}
 
+              {/* Saved Address Selector */}
+              {addresses.length > 0 && (
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">
+                    Select Saved Address
+                  </label>
+                  <select
+                    value={selectedAddressId}
+                    onChange={(e) => handleSelectAddress(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                  >
+                    {addresses.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.recipientName} ({a.streetAddress}, {a.city}) {a.isDefault ? '— Default' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               {/* Delivery Address Details */}
               <div className="space-y-3">
-                <p className="text-xs font-bold text-slate-900 uppercase tracking-wider">1. Delivery Address</p>
+                <p className="text-xs font-bold text-slate-900 uppercase tracking-wider">Delivery Details</p>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-500 mb-1">Recipient Name</label>
@@ -180,7 +242,7 @@ export const CheckoutModal: React.FC = () => {
 
               {/* Payment Card Simulation */}
               <div className="space-y-2 pt-2 border-t border-slate-100">
-                <p className="text-xs font-bold text-slate-900 uppercase tracking-wider">2. Simulated Payment Method</p>
+                <p className="text-xs font-bold text-slate-900 uppercase tracking-wider">Simulated Payment Method</p>
                 <div className="p-3.5 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 text-white flex items-center justify-between shadow-sm">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-7 bg-white/10 rounded-md flex items-center justify-center font-black text-[10px] tracking-wider text-amber-300">

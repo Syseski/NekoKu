@@ -8,12 +8,22 @@ import * as orderController from '../controllers/order.controller';
 import * as adminController from '../controllers/admin.controller';
 import { authenticate, requireAdmin } from '../middlewares/auth.middleware';
 
+import * as addressController from '../controllers/address.controller';
+
 const router = Router();
 
-// --- Auth Routes ---
+// --- Auth & User Profile Routes ---
 router.post('/auth/register', authController.register);
 router.post('/auth/login', authController.login);
 router.get('/auth/me', authenticate, authController.getMe);
+router.put('/auth/profile', authenticate, authController.updateProfile);
+
+// --- User Addresses CRUD ---
+router.get('/addresses', authenticate, addressController.getMyAddresses);
+router.post('/addresses', authenticate, addressController.createAddress);
+router.put('/addresses/:id', authenticate, addressController.updateAddress);
+router.delete('/addresses/:id', authenticate, addressController.deleteAddress);
+router.patch('/addresses/:id/default', authenticate, addressController.setDefaultAddress);
 
 // --- Cat Profiles & Smart Recommendations ---
 router.get('/cats', authenticate, catController.getMyCats);
@@ -40,6 +50,9 @@ router.delete('/cart', authenticate, cartController.clearCart);
 router.post('/checkout/simulate', authenticate, orderController.simulateCheckout);
 router.get('/orders', authenticate, orderController.getMyOrders);
 router.get('/orders/:id', authenticate, orderController.getOrderById);
+router.patch('/orders/:id/cancel', authenticate, orderController.cancelOrder);
+router.patch('/orders/:id/confirm-received', authenticate, orderController.confirmOrderReceived);
+router.patch('/orders/:id/return-refund', authenticate, orderController.requestReturnRefund);
 
 // --- 5 Admin Modules ---
 // 1. Overview Dashboard

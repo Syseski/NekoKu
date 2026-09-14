@@ -6,16 +6,16 @@
     "apps/*"
   ],
   "scripts": {
-    "dev:api": "npm run dev --workspace=apps/api",
-    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:api": "npm run dev --workspace=@nekoku/api",
+    "dev:web": "npm run dev --workspace=@nekoku/web",
     "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
-    "build:api": "npm run build --workspace=apps/api",
-    "build:web": "npm run build --workspace=apps/web",
+    "build:api": "npm run build --workspace=@nekoku/api",
+    "build:web": "npm run build --workspace=@nekoku/web",
     "build": "npm run build:api && npm run build:web",
-    "prisma:generate": "npm run prisma:generate --workspace=apps/api",
-    "prisma:migrate": "npm run prisma:migrate --workspace=apps/api",
-    "prisma:seed": "npm run prisma:seed --workspace=apps/api",
-    "prisma:studio": "npm run prisma:studio --workspace=apps/api"
+    "prisma:generate": "npm run prisma:generate --workspace=@nekoku/api",
+    "prisma:migrate": "npm run prisma:migrate --workspace=@nekoku/api",
+    "prisma:seed": "npm run prisma:seed --workspace=@nekoku/api",
+    "prisma:studio": "npm run prisma:studio --workspace=@nekoku/api"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

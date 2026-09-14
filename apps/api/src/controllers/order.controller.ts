@@ -190,3 +190,164 @@ export const getOrderById = async (req: AuthRequest, res: Response): Promise<voi
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+export const cancelOrder = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.id;
+
+    const order = await prisma.order.findFirst({
+      where: {
+        OR: [{ id }, { orderNumber: id }],
+        userId,
+      },
+      include: { items: true },
+    });
+
+    if (!order) {
+      res.status(404).json({ success: false, message: 'Order not found' });
+      return;
+    }
+
+    if (order.status === OrderStatus.CANCELLED) {
+      res.status(400).json({ success: false, message: 'Order is already cancelled' });
+      return;
+    }
+
+    if (order.status === OrderStatus.DELIVERED || order.status === OrderStatus.RETURN_REFUND) {
+      res.status(400).json({ success: false, message: 'Delivered orders cannot be cancelled directly. Please request a return/refund instead.' });
+      return;
+    }
+
+    const updated = await prisma.$transaction(async (tx) => {
+      // Restore stock
+      for (const item of order.items) {
+        if (item.productId) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stockQuantity: { increment: item.quantity } },
+          });
+        }
+      }
+
+      return tx.order.update({
+        where: { id: order.id },
+        data: { status: OrderStatus.CANCELLED },
+        include: {
+          items: {
+            include: {
+              product: {
+                include: { images: true },
+              },
+            },
+          },
+          deliveryAddress: true,
+        },
+      });
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Order cancelled successfully and inventory restored',
+      data: updated,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message || 'Failed to cancel order' });
+  }
+};
+
+export const confirmOrderReceived = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.id;
+
+    const order = await prisma.order.findFirst({
+      where: {
+        OR: [{ id }, { orderNumber: id }],
+        userId,
+      },
+    });
+
+    if (!order) {
+      res.status(404).json({ success: false, message: 'Order not found' });
+      return;
+    }
+
+    if (order.status === OrderStatus.CANCELLED || order.status === OrderStatus.RETURN_REFUND) {
+      res.status(400).json({ success: false, message: 'Cannot mark cancelled or refunded order as received' });
+      return;
+    }
+
+    const updated = await prisma.order.update({
+      where: { id: order.id },
+      data: {
+        status: OrderStatus.DELIVERED,
+      },
+      include: {
+        items: {
+          include: {
+            product: {
+              include: { images: true },
+            },
+          },
+        },
+        deliveryAddress: true,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Order confirmed as received! Thank you for shopping with NekoKu.',
+      data: updated,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message || 'Failed to confirm order' });
+  }
+};
+
+export const requestReturnRefund = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.id;
+
+    const order = await prisma.order.findFirst({
+      where: {
+        OR: [{ id }, { orderNumber: id }],
+        userId,
+      },
+    });
+
+    if (!order) {
+      res.status(404).json({ success: false, message: 'Order not found' });
+      return;
+    }
+
+    if (order.status !== OrderStatus.DELIVERED && order.status !== OrderStatus.SHIPPED) {
+      res.status(400).json({ success: false, message: 'Return/Refund can only be requested for shipped or delivered orders' });
+      return;
+    }
+
+    const updated = await prisma.order.update({
+      where: { id: order.id },
+      data: { status: OrderStatus.RETURN_REFUND },
+      include: {
+        items: {
+          include: {
+            product: {
+              include: { images: true },
+            },
+          },
+        },
+        deliveryAddress: true,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Return/Refund request submitted successfully.',
+      data: updated,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message || 'Failed to submit return request' });
+  }
+};
