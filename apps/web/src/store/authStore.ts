@@ -6,6 +6,9 @@ interface AuthState {
   user: User | null;
   token: string | null;
   isLoading: boolean;
+  isAuthModalOpen: boolean;
+  openAuthModal: () => void;
+  closeAuthModal: () => void;
   login: (email: string, password: string) => Promise<void>;
   register: (fullName: string, email: string, password: string, phoneNumber?: string) => Promise<void>;
   logout: () => void;
@@ -16,6 +19,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   token: localStorage.getItem('nekoku_auth_token'),
   isLoading: true,
+  isAuthModalOpen: false,
+
+  openAuthModal: () => set({ isAuthModalOpen: true }),
+  closeAuthModal: () => set({ isAuthModalOpen: false }),
 
   login: async (email, password) => {
     const res = await api.post('/auth/login', { email, password });

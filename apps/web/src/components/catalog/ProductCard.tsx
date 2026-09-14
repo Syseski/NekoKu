@@ -13,7 +13,7 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails }) => {
   const { addItem, isLoading } = useCartStore();
-  const { user } = useAuthStore();
+  const { user, openAuthModal } = useAuthStore();
   const { activeCat } = useCatStore();
   const [isAdding, setIsAdding] = useState(false);
 
@@ -40,6 +40,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails
     e.stopPropagation();
     if (isAdmin) {
       onOpenDetails(product);
+      return;
+    }
+    if (!user) {
+      openAuthModal();
       return;
     }
     try {

@@ -14,10 +14,9 @@ import { useCatStore } from './store/catStore';
 import { useCartStore } from './store/cartStore';
 
 export const App: React.FC = () => {
-  const { user, fetchMe } = useAuthStore();
+  const { user, fetchMe, isAuthModalOpen, openAuthModal, closeAuthModal } = useAuthStore();
   const { fetchCats } = useCatStore();
   const { fetchCart } = useCartStore();
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const isAdmin = user?.role === 'ADMIN';
 
@@ -36,7 +35,7 @@ export const App: React.FC = () => {
     <BrowserRouter>
       <div className="min-h-screen flex flex-col bg-[#FAF8F5]">
         {/* Header */}
-        <Navbar onOpenAuthModal={() => setIsAuthModalOpen(true)} />
+        <Navbar onOpenAuthModal={openAuthModal} />
 
         {/* Main Content Pages */}
         <main className="flex-1">
@@ -61,7 +60,7 @@ export const App: React.FC = () => {
         {/* Global Slide-Over Drawers & Modals (Customers Only) */}
         {!isAdmin && (
           <>
-            <CartDrawer onOpenAuth={() => setIsAuthModalOpen(true)} />
+            <CartDrawer onOpenAuth={openAuthModal} />
             <CheckoutModal />
           </>
         )}
@@ -69,7 +68,7 @@ export const App: React.FC = () => {
         {/* Auth Modal */}
         <AuthModal
           isOpen={isAuthModalOpen}
-          onClose={() => setIsAuthModalOpen(false)}
+          onClose={closeAuthModal}
         />
 
         {/* Footer */}

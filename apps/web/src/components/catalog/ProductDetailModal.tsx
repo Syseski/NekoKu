@@ -13,7 +13,7 @@ interface ProductDetailModalProps {
 
 export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product, onClose }) => {
   const { addItem } = useCartStore();
-  const { user } = useAuthStore();
+  const { user, openAuthModal } = useAuthStore();
   const { activeCat } = useCatStore();
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
@@ -24,6 +24,11 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
 
   const handleAddToCart = async () => {
     if (isAdmin) return;
+    if (!user) {
+      onClose();
+      openAuthModal();
+      return;
+    }
     try {
       setIsAdding(true);
       await addItem(product.id, quantity);
