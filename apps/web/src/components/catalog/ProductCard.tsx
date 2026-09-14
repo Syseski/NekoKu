@@ -60,25 +60,25 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails
   return (
     <div
       onClick={() => onOpenDetails(product)}
-      className="group bg-white rounded-3xl border border-slate-200/80 p-4 shadow-xs hover:shadow-lg hover:border-amber-300 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between cursor-pointer relative overflow-hidden active:scale-[0.99]"
+      className="group bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 p-2.5 sm:p-4 shadow-xs hover:shadow-lg hover:border-amber-300 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between cursor-pointer relative overflow-hidden active:scale-[0.99]"
     >
       {/* Subtle Cat Recommendation Badge in Top-Right */}
       {isMatchingCat && activeCat && (
-        <div className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-600/90 text-white text-[10px] font-bold shadow-xs backdrop-blur-xs">
-          <Sparkles className="w-3 h-3 text-emerald-200" />
-          <span>For {activeCat.name}</span>
+        <div className="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 z-10 flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full bg-emerald-600/95 text-white text-[9px] sm:text-[10px] font-bold shadow-xs backdrop-blur-xs">
+          <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-200" />
+          <span className="truncate max-w-[70px] sm:max-w-none">For {activeCat.name}</span>
         </div>
       )}
 
       {/* Specialty Diet Pill in Top-Left */}
       {product.isSpecialtyDiet && (
-        <div className="absolute top-2.5 left-2.5 z-10 px-2 py-0.5 rounded-md bg-slate-100/90 text-slate-700 text-[10px] font-bold border border-slate-200/80 backdrop-blur-xs">
+        <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 z-10 px-1.5 sm:px-2 py-0.5 rounded-md bg-slate-100/90 text-slate-700 text-[9px] sm:text-[10px] font-bold border border-slate-200/80 backdrop-blur-xs">
           Vet Care
         </div>
       )}
 
       {/* Consistent Aspect-Square Image Container on Clean White Background */}
-      <div className="relative aspect-square w-full rounded-2xl bg-white border border-slate-100 p-3 mb-3.5 flex items-center justify-center overflow-hidden">
+      <div className="relative aspect-square w-full rounded-xl sm:rounded-2xl bg-white border border-slate-100 p-2 sm:p-3 mb-2 sm:mb-3.5 flex items-center justify-center overflow-hidden">
         <img
           src={primaryImage}
           alt={product.name}
@@ -86,7 +86,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails
           loading="lazy"
         />
         {product.stockQuantity <= 5 && (
-          <div className="absolute bottom-2 right-2 bg-red-500 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded shadow-xs">
+          <div className="absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 bg-red-500 text-white text-[9px] sm:text-[10px] font-extrabold px-1 sm:px-1.5 py-0.5 rounded shadow-xs">
             {product.stockQuantity} left
           </div>
         )}
@@ -95,51 +95,51 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails
       {/* Content Section */}
       <div className="flex-1 flex flex-col">
         {/* Brand & Life Stage */}
-        <div className="flex items-center justify-between gap-2 mb-1">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 truncate">
+        <div className="flex items-center justify-between gap-1 mb-1">
+          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 truncate">
             {product.brand}
           </span>
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 capitalize flex-shrink-0">
-            {product.targetLifeStage === 'ALL_STAGES' ? 'All Ages' : product.targetLifeStage.toLowerCase()}
+          <span className="text-[9px] sm:text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 capitalize flex-shrink-0">
+            {product.targetLifeStage === 'ALL_STAGES' ? 'All' : product.targetLifeStage.toLowerCase()}
           </span>
         </div>
 
         {/* Product Title */}
-        <h4 className="font-bold text-slate-900 text-sm leading-snug line-clamp-2 mb-2 group-hover:text-amber-600 transition-colors duration-200">
+        <h4 className="font-bold text-slate-900 text-xs sm:text-sm leading-snug line-clamp-2 mb-1.5 sm:mb-2 min-h-[2rem] sm:min-h-[2.5rem] group-hover:text-amber-600 transition-colors duration-200">
           {product.name}
         </h4>
 
         {/* Health Focus Chips (Neutral styling) */}
-        <div className="flex flex-wrap gap-1 mb-2.5">
-          {product.healthFocuses.slice(0, 2).map((hf) => (
+        <div className="flex flex-wrap gap-1 mb-2">
+          {product.healthFocuses.slice(0, 1).map((hf) => (
             <span
               key={hf.id || hf.focus}
-              className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-700"
+              className="text-[9px] sm:text-[10px] font-medium px-1.5 sm:px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 truncate max-w-full"
             >
               {hf.focus.replace(/_/g, ' ').toLowerCase()}
             </span>
           ))}
-          {product.healthFocuses.length > 2 && (
-            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-500">
-              +{product.healthFocuses.length - 2}
+          {product.healthFocuses.length > 1 && (
+            <span className="text-[9px] sm:text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-500">
+              +{product.healthFocuses.length - 1}
             </span>
           )}
         </div>
 
         {/* Reviews */}
-        <div className="flex items-center gap-1 mb-3 text-xs text-slate-500">
+        <div className="flex items-center gap-1 mb-2.5 text-[10px] sm:text-xs text-slate-500">
           <div className="flex items-center text-amber-500">
-            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-            <span className="font-bold text-slate-800 ml-1">{product.rating.toFixed(1)}</span>
+            <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-400 text-amber-400" />
+            <span className="font-bold text-slate-800 ml-0.5 sm:ml-1">{product.rating.toFixed(1)}</span>
           </div>
-          <span className="text-[11px] text-slate-400">({product.ratingCount})</span>
+          <span className="text-[10px] text-slate-400">({product.ratingCount})</span>
         </div>
 
         {/* Footer: Price & Add to Cart */}
-        <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between">
+        <div className="mt-auto pt-2 sm:pt-3 border-t border-slate-100 flex items-center justify-between gap-1.5">
           <div>
-            <span className="text-[10px] text-slate-400 block -mb-0.5 font-medium">Price</span>
-            <span className="text-base font-black text-slate-900 font-sans">
+            <span className="text-[9px] sm:text-[10px] text-slate-400 block -mb-0.5 font-medium">Price</span>
+            <span className="text-sm sm:text-base font-black text-slate-900 font-sans">
               {formatRM(product.price)}
             </span>
           </div>
@@ -150,16 +150,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails
                 e.stopPropagation();
                 onOpenDetails(product);
               }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-xs font-bold transition-all duration-200 hover:scale-105"
+              className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-[11px] sm:text-xs font-bold transition-all duration-200 hover:scale-105"
             >
-              <Eye className="w-3.5 h-3.5" />
-              View
+              <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <span>View</span>
             </button>
           ) : (
             <button
               onClick={handleAddToCart}
               disabled={isLoading || product.stockQuantity === 0}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-bold transition-all duration-200 shadow-sm ${
+              className={`flex items-center justify-center gap-1 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs font-bold transition-all duration-200 shadow-xs ${
                 isAdding
                   ? 'bg-emerald-500 text-white scale-105'
                   : 'bg-amber-600 hover:bg-amber-700 text-white shadow-amber-600/20 hover:scale-105 active:scale-95'
@@ -167,13 +167,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails
             >
               {isAdding ? (
                 <>
-                  <Check className="w-3.5 h-3.5 animate-scale-in" />
-                  Added
+                  <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-scale-in" />
+                  <span>Added</span>
                 </>
               ) : (
                 <>
-                  <ShoppingBag className="w-3.5 h-3.5" />
-                  Add
+                  <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  <span>Add</span>
                 </>
               )}
             </button>
