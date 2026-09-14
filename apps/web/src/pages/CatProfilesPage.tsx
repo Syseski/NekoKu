@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useCatStore } from '../store/catStore';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
+import { useLanguageStore } from '../store/languageStore';
+import { translations, t } from '../utils/translations';
 import { CatProfileModal } from '../components/cat/CatProfileModal';
 import { CatProfile, CatHealthConcern } from '../types';
 import { Plus, Trash2, Sparkles, CheckCircle2, UserCheck, Heart } from 'lucide-react';
@@ -9,6 +11,8 @@ import { Plus, Trash2, Sparkles, CheckCircle2, UserCheck, Heart } from 'lucide-r
 export const CatProfilesPage: React.FC = () => {
   const { user } = useAuthStore();
   const { cats, activeCat, setActiveCat, deleteCat, fetchCats } = useCatStore();
+  const { language } = useLanguageStore();
+  const currentT = translations[language] || translations.en;
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
@@ -24,9 +28,9 @@ export const CatProfilesPage: React.FC = () => {
           <Heart className="w-8 h-8 fill-brand-500" />
         </div>
         <div>
-          <h2 className="text-2xl font-black text-slate-900">Manage Your Cat Profiles</h2>
+          <h2 className="text-2xl font-black text-slate-900">{currentT.manageCatProfiles}</h2>
           <p className="text-xs text-slate-500 mt-1">
-            Please sign in from the top navigation bar to manage your cat profiles and health conditions.
+            {currentT.signInCatDesc}
           </p>
         </div>
       </div>
@@ -41,10 +45,10 @@ export const CatProfilesPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <span className="text-2xl animate-wiggle">🐱</span>
-            <h1 className="text-2xl font-black text-slate-900">My Cat Profiles</h1>
+            <h1 className="text-2xl font-black text-slate-900">{currentT.catProfilesTitle}</h1>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Register your cats to automatically receive age-specific and health-tailored dietary matches.
+            {currentT.catProfilesSubtitle}
           </p>
         </div>
 
@@ -53,7 +57,7 @@ export const CatProfilesPage: React.FC = () => {
           className="flex items-center gap-1.5 py-2.5 px-4 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs shadow-md shadow-brand-500/20 hover:scale-105 active:scale-95 transition-all duration-200"
         >
           <Plus className="w-4 h-4" />
-          Add Cat Profile
+          {currentT.addCatProfile}
         </button>
       </div>
 
@@ -86,19 +90,19 @@ export const CatProfilesPage: React.FC = () => {
                         <h3 className="font-extrabold text-slate-900 text-lg">{cat.name}</h3>
                         {isSelected && (
                           <span className="flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold animate-scale-in">
-                            <CheckCircle2 className="w-3 h-3" /> Active
+                            <CheckCircle2 className="w-3 h-3" /> {currentT.activeBadge}
                           </span>
                         )}
                       </div>
                       <p className="text-xs text-slate-500 capitalize">
-                        {cat.breed || 'Domestic Cat'} • {String(cat.lifeStage || 'adult').toLowerCase()}
+                        {cat.breed || currentT.domesticCat} • {String(cat.lifeStage || 'adult').toLowerCase()}
                       </p>
                     </div>
                   </div>
 
                   <button
                     onClick={() => {
-                      if (confirm(`Are you sure you want to delete profile for ${cat.name}?`)) {
+                      if (confirm(t('deleteConfirm', language, { name: cat.name }))) {
                         deleteCat(cat.id);
                       }
                     }}
@@ -112,19 +116,19 @@ export const CatProfilesPage: React.FC = () => {
                 {/* Specs list */}
                 <div className="grid grid-cols-2 gap-2 text-xs mb-4">
                   <div className="p-2 rounded-xl bg-slate-50">
-                    <span className="text-[10px] text-slate-400 block font-medium">Weight</span>
-                    <span className="font-bold text-slate-800">{cat.weightKg ? `${cat.weightKg} kg` : 'Not set'}</span>
+                    <span className="text-[10px] text-slate-400 block font-medium">{currentT.weight}</span>
+                    <span className="font-bold text-slate-800">{cat.weightKg ? `${cat.weightKg} kg` : currentT.notSet}</span>
                   </div>
                   <div className="p-2 rounded-xl bg-slate-50">
-                    <span className="text-[10px] text-slate-400 block font-medium">Status</span>
-                    <span className="font-bold text-slate-800">{cat.isNeutered ? 'Neutered ✂️' : 'Intact'}</span>
+                    <span className="text-[10px] text-slate-400 block font-medium">{currentT.status}</span>
+                    <span className="font-bold text-slate-800">{cat.isNeutered ? currentT.neutered : currentT.intact}</span>
                   </div>
                 </div>
 
                 {/* Health Concerns */}
                 <div className="space-y-1.5 mb-4">
                   <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                    Health Concerns
+                    {currentT.healthConcerns}
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {Array.isArray(cat.healthConcerns) && cat.healthConcerns.length > 0 ? (
@@ -140,14 +144,14 @@ export const CatProfilesPage: React.FC = () => {
                         );
                       })
                     ) : (
-                      <span className="text-xs text-slate-400 italic">No health issues registered</span>
+                      <span className="text-xs text-slate-400 italic">{currentT.noHealthIssues}</span>
                     )}
                   </div>
                 </div>
 
                 {cat.allergies && (
                   <p className="text-xs text-slate-500 mb-4">
-                    <strong className="text-slate-700">Allergies:</strong> {cat.allergies}
+                    <strong className="text-slate-700">{currentT.allergies}:</strong> {cat.allergies}
                   </p>
                 )}
               </div>
@@ -162,7 +166,7 @@ export const CatProfilesPage: React.FC = () => {
                 }`}
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                {isSelected ? 'Currently Shopping for ' + cat.name : 'Switch Active Cat to ' + cat.name}
+                {isSelected ? `Currently Shopping for ${cat.name}` : `Switch Active Cat to ${cat.name}`}
               </button>
 
             </div>
@@ -172,13 +176,13 @@ export const CatProfilesPage: React.FC = () => {
         {cats.length === 0 && (
           <div className="col-span-full text-center py-16 bg-white rounded-3xl border border-orange-100 p-8 shadow-xs animate-scale-in">
             <span className="text-4xl block mb-2 animate-bounce">🐾</span>
-            <h3 className="text-base font-bold text-slate-800">No cats registered yet</h3>
-            <p className="text-xs text-slate-500 mt-1 mb-4">Register your cat to receive customized diet recommendations.</p>
+            <h3 className="text-base font-bold text-slate-800">{currentT.noCatsYet}</h3>
+            <p className="text-xs text-slate-500 mt-1 mb-4">{currentT.catProfilesSubtitle}</p>
             <button
               onClick={() => setIsModalOpen(true)}
               className="px-4 py-2 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs shadow-md shadow-brand-500/20 hover:scale-105 active:scale-95 transition-all"
             >
-              Add First Cat Profile
+              {currentT.addCatProfile}
             </button>
           </div>
         )}

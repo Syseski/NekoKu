@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Category, LifeStage, HealthFocusType } from '../../types';
+import { useLanguageStore } from '../../store/languageStore';
+import { translations } from '../../utils/translations';
 import { Filter, X, Sparkles, RotateCcw, ChevronDown, ChevronUp, Check } from 'lucide-react';
 
 interface SidebarFiltersProps {
@@ -15,25 +17,6 @@ interface SidebarFiltersProps {
   onCloseMobile?: () => void;
 }
 
-const LIFE_STAGES: { label: string; value: LifeStage | ''; icon: string }[] = [
-  { label: 'All Life Stages', value: '', icon: '🐾' },
-  { label: 'Kitten (0 - 12 months)', value: 'KITTEN', icon: '🍼' },
-  { label: 'Adult (1 - 7 years)', value: 'ADULT', icon: '🐈' },
-  { label: 'Senior (7+ years)', value: 'SENIOR', icon: '👑' },
-];
-
-const HEALTH_FOCUSES: { label: string; value: HealthFocusType | '' }[] = [
-  { label: 'All Health Focuses', value: '' },
-  { label: 'Urinary Care', value: 'URINARY_CARE' },
-  { label: 'Hairball Control', value: 'HAIRBALL_CONTROL' },
-  { label: 'Sensitive Digestion', value: 'SENSITIVE_DIGESTION' },
-  { label: 'Kidney Support', value: 'KIDNEY_SUPPORT' },
-  { label: 'Skin & Coat Wellness', value: 'SKIN_AND_COAT' },
-  { label: 'Weight Management', value: 'WEIGHT_MANAGEMENT' },
-  { label: 'Dental Tartar Care', value: 'DENTAL_CARE' },
-  { label: 'General Wellness', value: 'GENERAL_WELLNESS' },
-];
-
 export const SidebarFilters: React.FC<SidebarFiltersProps> = ({
   categories,
   selectedCategory,
@@ -46,11 +29,33 @@ export const SidebarFilters: React.FC<SidebarFiltersProps> = ({
   isMobileOpen = false,
   onCloseMobile,
 }) => {
+  const { language } = useLanguageStore();
+  const t = translations[language];
+
   const [categoryOpen, setCategoryOpen] = useState(true);
   const [lifeStageOpen, setLifeStageOpen] = useState(true);
   const [healthFocusOpen, setHealthFocusOpen] = useState(true);
 
   const hasActiveFilters = Boolean(selectedCategory || selectedLifeStage || selectedHealthFocus);
+
+  const lifeStages: { label: string; value: LifeStage | ''; icon: string }[] = [
+    { label: t.allLifeStages, value: '', icon: '🐾' },
+    { label: t.kitten, value: 'KITTEN', icon: '🍼' },
+    { label: t.adult, value: 'ADULT', icon: '🐈' },
+    { label: t.senior, value: 'SENIOR', icon: '👑' },
+  ];
+
+  const healthFocuses: { label: string; value: HealthFocusType | '' }[] = [
+    { label: t.allHealthFocuses, value: '' },
+    { label: t.urinaryCare, value: 'URINARY_CARE' },
+    { label: t.hairballControl, value: 'HAIRBALL_CONTROL' },
+    { label: t.sensitiveDigestion, value: 'SENSITIVE_DIGESTION' },
+    { label: t.kidneySupport, value: 'KIDNEY_SUPPORT' },
+    { label: t.skinAndCoat, value: 'SKIN_AND_COAT' },
+    { label: t.weightManagement, value: 'WEIGHT_MANAGEMENT' },
+    { label: t.dentalCare, value: 'DENTAL_CARE' },
+    { label: t.generalWellness, value: 'GENERAL_WELLNESS' },
+  ];
 
   const filterContent = (
     <div className="space-y-6">
@@ -58,7 +63,7 @@ export const SidebarFilters: React.FC<SidebarFiltersProps> = ({
       <div className="flex items-center justify-between pb-3 border-b border-slate-200">
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 text-brand-600" />
-          <h3 className="font-extrabold text-slate-900 text-sm tracking-tight">Filter Products</h3>
+          <h3 className="font-extrabold text-slate-900 text-sm tracking-tight">{t.filterProducts}</h3>
         </div>
         {hasActiveFilters && (
           <button
@@ -66,7 +71,7 @@ export const SidebarFilters: React.FC<SidebarFiltersProps> = ({
             className="flex items-center gap-1 text-[11px] font-bold text-slate-500 hover:text-brand-600 transition-colors"
           >
             <RotateCcw className="w-3 h-3" />
-            Clear all
+            {t.clearAll}
           </button>
         )}
       </div>
@@ -77,7 +82,7 @@ export const SidebarFilters: React.FC<SidebarFiltersProps> = ({
           onClick={() => setCategoryOpen(!categoryOpen)}
           className="w-full flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-800"
         >
-          <span>Category</span>
+          <span>{t.category}</span>
           {categoryOpen ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
         </button>
 
@@ -91,7 +96,7 @@ export const SidebarFilters: React.FC<SidebarFiltersProps> = ({
                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
-              <span>All Categories</span>
+              <span>{t.allCategories}</span>
             </button>
             {categories.map((cat) => {
               const isSelected = selectedCategory === cat.slug;
@@ -126,13 +131,13 @@ export const SidebarFilters: React.FC<SidebarFiltersProps> = ({
           onClick={() => setLifeStageOpen(!lifeStageOpen)}
           className="w-full flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-800"
         >
-          <span>Life Stage</span>
+          <span>{t.lifeStage}</span>
           {lifeStageOpen ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
         </button>
 
         {lifeStageOpen && (
           <div className="space-y-1 pl-0.5 animate-fade-in">
-            {LIFE_STAGES.map((stage) => {
+            {lifeStages.map((stage) => {
               const isSelected = selectedLifeStage === stage.value;
               return (
                 <button
@@ -164,14 +169,14 @@ export const SidebarFilters: React.FC<SidebarFiltersProps> = ({
         >
           <div className="flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            <span>Health & Diet Focus</span>
+            <span>{t.healthDietFocus}</span>
           </div>
           {healthFocusOpen ? <ChevronUp className="w-3.5 h-3.5 text-slate-400" /> : <ChevronDown className="w-3.5 h-3.5 text-slate-400" />}
         </button>
 
         {healthFocusOpen && (
           <div className="flex flex-col gap-1 pl-0.5 animate-fade-in">
-            {HEALTH_FOCUSES.map((focus) => {
+            {healthFocuses.map((focus) => {
               const isSelected = selectedHealthFocus === focus.value;
               return (
                 <button
@@ -210,7 +215,7 @@ export const SidebarFilters: React.FC<SidebarFiltersProps> = ({
           <div className="relative ml-auto w-full max-w-xs bg-white h-full p-6 shadow-2xl flex flex-col justify-between overflow-y-auto z-10 animate-slide-left">
             <div>
               <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
-                <span className="font-black text-base text-slate-900">Filters</span>
+                <span className="font-black text-base text-slate-900">{t.filters}</span>
                 <button onClick={onCloseMobile} className="p-2 rounded-full hover:bg-slate-100 text-slate-400">
                   <X className="w-5 h-5" />
                 </button>
@@ -223,7 +228,7 @@ export const SidebarFilters: React.FC<SidebarFiltersProps> = ({
                 onClick={onCloseMobile}
                 className="w-full py-3 rounded-2xl bg-amber-600 text-white font-bold text-xs shadow-md shadow-amber-600/20"
               >
-                Apply Filters
+                {t.filterProducts}
               </button>
             </div>
           </div>

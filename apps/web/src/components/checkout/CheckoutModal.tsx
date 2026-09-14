@@ -7,10 +7,14 @@ import { X, CheckCircle, ShieldCheck, PackageCheck, ArrowRight, MapPin, ChevronD
 import confetti from 'canvas-confetti';
 import { useNavigate } from 'react-router-dom';
 import { formatRM } from '../../utils/format';
+import { useLanguageStore } from '../../store/languageStore';
+import { translations, t } from '../../utils/translations';
 
 export const CheckoutModal: React.FC = () => {
   const { isCheckoutModalOpen, closeCheckoutModal, cart, simulateCheckout } = useCartStore();
   const { user } = useAuthStore();
+  const { language } = useLanguageStore();
+  const currentT = translations[language] || translations.en;
   const navigate = useNavigate();
 
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -111,8 +115,8 @@ export const CheckoutModal: React.FC = () => {
               <ShieldCheck className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-900 text-sm">Simulated Checkout Gateway</h3>
-              <p className="text-[11px] text-slate-500">Test order flow with live stock deduction</p>
+              <h3 className="font-bold text-slate-900 text-sm">{currentT.checkoutGateway}</h3>
+              <p className="text-[11px] text-slate-500">{currentT.checkoutSub}</p>
             </div>
           </div>
           <button
@@ -133,24 +137,24 @@ export const CheckoutModal: React.FC = () => {
               </div>
 
               <div>
-                <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest">Mock Order Successful</span>
-                <h3 className="text-xl font-extrabold text-slate-900 mt-1">Thank you for caring for your cats! 🐾</h3>
+                <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest">{currentT.mockOrderSuccess}</span>
+                <h3 className="text-xl font-extrabold text-slate-900 mt-1">{currentT.thankYou}</h3>
                 <p className="text-xs text-slate-500 mt-1">
-                  Order <strong className="text-slate-900">{orderCompleted.orderNumber}</strong> has been created and inventory was deducted.
+                  {t('orderCreatedMsg', language, { orderNumber: orderCompleted.orderNumber })}
                 </p>
               </div>
 
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left space-y-2 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Recipient:</span>
+                  <span className="text-slate-500">{currentT.recipient}:</span>
                   <span className="font-bold text-slate-900">{recipientName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Delivery Address:</span>
+                  <span className="text-slate-500">{currentT.deliveryAddress}:</span>
                   <span className="font-semibold text-slate-700">{streetAddress}, {city}</span>
                 </div>
                 <div className="flex justify-between border-t border-slate-200 pt-2 font-bold text-sm">
-                  <span>Total Paid:</span>
+                  <span>{currentT.totalPaid}:</span>
                   <span className="text-brand-600">{formatRM(total)}</span>
                 </div>
               </div>
@@ -164,13 +168,13 @@ export const CheckoutModal: React.FC = () => {
                   className="flex-1 py-3 px-4 rounded-2xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition flex items-center justify-center gap-2"
                 >
                   <PackageCheck className="w-4 h-4" />
-                  View in Order History
+                  {currentT.viewInOrderHistory}
                 </button>
                 <button
                   onClick={closeCheckoutModal}
                   className="py-3 px-4 rounded-2xl bg-orange-50 text-brand-700 hover:bg-orange-100 font-bold text-xs transition"
                 >
-                  Continue Shopping
+                  {currentT.continueShopping}
                 </button>
               </div>
             </div>
@@ -187,7 +191,7 @@ export const CheckoutModal: React.FC = () => {
               {addresses.length > 0 && (
                 <div>
                   <label className="block text-[11px] font-bold uppercase text-slate-600 mb-1">
-                    Select Saved Address
+                    {currentT.selectSavedAddress}
                   </label>
                   <select
                     value={selectedAddressId}
@@ -196,7 +200,7 @@ export const CheckoutModal: React.FC = () => {
                   >
                     {addresses.map((a) => (
                       <option key={a.id} value={a.id}>
-                        {a.recipientName} ({a.streetAddress}, {a.city}) {a.isDefault ? '— Default' : ''}
+                        {a.recipientName} ({a.streetAddress}, {a.city}) {a.isDefault ? `— Default` : ''}
                       </option>
                     ))}
                   </select>
@@ -205,10 +209,10 @@ export const CheckoutModal: React.FC = () => {
 
               {/* Delivery Address Details */}
               <div className="space-y-3">
-                <p className="text-xs font-bold text-slate-900 uppercase tracking-wider">Delivery Details</p>
+                <p className="text-xs font-bold text-slate-900 uppercase tracking-wider">{currentT.deliveryDetails}</p>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-500 mb-1">Recipient Name</label>
+                    <label className="block text-[11px] font-semibold text-slate-500 mb-1">{currentT.recipientName}</label>
                     <input
                       type="text"
                       value={recipientName}
@@ -218,7 +222,7 @@ export const CheckoutModal: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-500 mb-1">Postal Code</label>
+                    <label className="block text-[11px] font-semibold text-slate-500 mb-1">{currentT.postalCode}</label>
                     <input
                       type="text"
                       value={postalCode}
@@ -229,7 +233,7 @@ export const CheckoutModal: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-500 mb-1">Street Address</label>
+                  <label className="block text-[11px] font-semibold text-slate-500 mb-1">{currentT.streetAddress}</label>
                   <input
                     type="text"
                     value={streetAddress}
@@ -242,7 +246,7 @@ export const CheckoutModal: React.FC = () => {
 
               {/* Payment Card Simulation */}
               <div className="space-y-2 pt-2 border-t border-slate-100">
-                <p className="text-xs font-bold text-slate-900 uppercase tracking-wider">Simulated Payment Method</p>
+                <p className="text-xs font-bold text-slate-900 uppercase tracking-wider">{currentT.simulatedPaymentMethod}</p>
                 <div className="p-3.5 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 text-white flex items-center justify-between shadow-sm">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-7 bg-white/10 rounded-md flex items-center justify-center font-black text-[10px] tracking-wider text-amber-300">
@@ -250,7 +254,7 @@ export const CheckoutModal: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-xs font-bold tracking-widest">{cardNumber}</p>
-                      <p className="text-[10px] text-slate-400">Mock Card for Demonstration</p>
+                      <p className="text-[10px] text-slate-400">{currentT.mockCardNote}</p>
                     </div>
                   </div>
                   <div className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse" />
@@ -260,15 +264,15 @@ export const CheckoutModal: React.FC = () => {
               {/* Summary */}
               <div className="p-3.5 rounded-2xl bg-orange-50/70 border border-orange-100 space-y-1.5 text-xs">
                 <div className="flex justify-between text-slate-600">
-                  <span>Cart Items ({cart?.totalItems}):</span>
+                  <span>{t('cartItemsCount', language, { count: cart?.totalItems || 0 })}</span>
                   <span className="font-bold font-sans">{formatRM(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-slate-600">
-                  <span>Shipping Fee:</span>
-                  <span className="font-bold font-sans">{shippingFee === 0 ? 'FREE' : formatRM(shippingFee)}</span>
+                  <span>{currentT.shippingFeeLabel}</span>
+                  <span className="font-bold font-sans">{shippingFee === 0 ? currentT.free : formatRM(shippingFee)}</span>
                 </div>
                 <div className="flex justify-between font-extrabold text-slate-900 text-sm pt-1.5 border-t border-orange-200/60">
-                  <span>Total:</span>
+                  <span>{currentT.totalLabel}</span>
                   <span className="text-brand-600 font-sans">{formatRM(total)}</span>
                 </div>
               </div>
@@ -281,11 +285,11 @@ export const CheckoutModal: React.FC = () => {
                 {isProcessing ? (
                   <span className="flex items-center gap-2">
                     <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Simulating Transaction...
+                    {currentT.simulatingTransaction}
                   </span>
                 ) : (
                   <>
-                    <span>Confirm & Pay {formatRM(total)}</span>
+                    <span>{t('confirmAndPay', language, { total: formatRM(total) })}</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}

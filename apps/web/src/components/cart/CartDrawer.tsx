@@ -1,6 +1,8 @@
 import React from 'react';
 import { useCartStore } from '../../store/cartStore';
 import { useAuthStore } from '../../store/authStore';
+import { useLanguageStore } from '../../store/languageStore';
+import { translations } from '../../utils/translations';
 import { X, Trash2, ShoppingBag, ArrowRight, Truck } from 'lucide-react';
 import { formatRM } from '../../utils/format';
 
@@ -11,6 +13,8 @@ interface CartDrawerProps {
 export const CartDrawer: React.FC<CartDrawerProps> = ({ onOpenAuth }) => {
   const { cart, isOpen, closeCart, updateQuantity, removeItem, openCheckoutModal } = useCartStore();
   const { user } = useAuthStore();
+  const { language } = useLanguageStore();
+  const t = translations[language];
 
   if (!isOpen) return null;
 
@@ -41,10 +45,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onOpenAuth }) => {
           {/* Header */}
           <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-brand-500" />
-              <h3 className="font-bold text-slate-900 text-base">Your Shopping Cart</h3>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-brand-800">
-                {cart?.totalItems || 0} items
+              <ShoppingBag className="w-5 h-5 text-amber-600" />
+              <h3 className="font-bold text-slate-900 text-base">{t.yourCart}</h3>
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">
+                {cart?.totalItems || 0} {language === 'ms' ? 'item' : 'items'}
               </span>
             </div>
             <button
@@ -58,18 +62,18 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onOpenAuth }) => {
           {/* Free Shipping Progress */}
           <div className="px-6 py-3 bg-orange-50/50 border-b border-orange-100">
             <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 mb-1.5">
-              <Truck className="w-4 h-4 text-brand-500" />
+              <Truck className="w-4 h-4 text-amber-600" />
               {remainingForFreeShipping > 0 ? (
                 <span>
-                  Add <span className="font-bold text-brand-600">{formatRM(remainingForFreeShipping)}</span> more for <strong>FREE Express Delivery</strong>!
+                  {t.freeShippingAway.replace('{amount}', formatRM(remainingForFreeShipping))}
                 </span>
               ) : (
-                <span className="text-emerald-700 font-bold">🎉 You unlocked FREE Express Delivery!</span>
+                <span className="text-emerald-700 font-bold">{t.freeShippingQualified}</span>
               )}
             </div>
             <div className="w-full bg-orange-200/60 rounded-full h-1.5 overflow-hidden">
               <div
-                className="bg-brand-500 h-full rounded-full transition-all duration-300"
+                className="bg-amber-600 h-full rounded-full transition-all duration-300"
                 style={{ width: `${freeShippingProgress}%` }}
               />
             </div>
@@ -83,10 +87,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onOpenAuth }) => {
                 return (
                   <div
                     key={item.id}
-                    className="flex gap-4 p-3 rounded-2xl border border-slate-100 bg-white hover:border-orange-100 shadow-xs transition"
+                    className="flex gap-4 p-3 rounded-2xl border border-slate-100 bg-white hover:border-amber-200 shadow-xs transition"
                   >
-                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-50 flex-shrink-0">
-                      <img src={imgUrl} alt={item.product.name} className="w-full h-full object-cover" />
+                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-white border border-slate-100 p-1 flex-shrink-0">
+                      <img src={imgUrl} alt={item.product.name} className="w-full h-full object-contain" />
                     </div>
 
                     <div className="flex-1 flex flex-col justify-between min-w-0">
@@ -143,8 +147,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onOpenAuth }) => {
                 <div className="w-16 h-16 rounded-full bg-orange-50 flex items-center justify-center mx-auto mb-3 text-2xl">
                   🛒
                 </div>
-                <h4 className="font-bold text-slate-800 text-sm">Your cart is empty</h4>
-                <p className="text-xs text-slate-500 mt-1">Explore our smart cat nutrition catalog!</p>
+                <h4 className="font-bold text-slate-800 text-sm">{t.cartEmpty}</h4>
+                <p className="text-xs text-slate-500 mt-1">{t.cartEmptyDesc}</p>
               </div>
             )}
           </div>
@@ -153,27 +157,27 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onOpenAuth }) => {
           {cart?.items && cart.items.length > 0 && (
             <div className="p-6 border-t border-slate-100 bg-slate-50 space-y-3">
               <div className="flex items-center justify-between text-xs text-slate-600">
-                <span>Subtotal</span>
+                <span>{t.subtotal}</span>
                 <span className="font-bold text-slate-900 font-sans">{formatRM(subtotal)}</span>
               </div>
               <div className="flex items-center justify-between text-xs text-slate-600">
-                <span>Estimated Shipping</span>
+                <span>{t.shipping}</span>
                 <span className="font-bold text-slate-900 font-sans">
-                  {subtotal >= freeShippingThreshold ? 'FREE' : 'RM 4.99'}
+                  {subtotal >= freeShippingThreshold ? t.free : 'RM 4.99'}
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm font-bold text-slate-900 pt-2 border-t border-slate-200">
-                <span>Total Amount</span>
-                <span className="text-lg font-black text-brand-600 font-sans">
+                <span>{t.totalPaid}</span>
+                <span className="text-lg font-black text-amber-600 font-sans">
                   {formatRM(subtotal + (subtotal >= freeShippingThreshold ? 0 : 4.99))}
                 </span>
               </div>
 
               <button
                 onClick={handleCheckoutClick}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm shadow-md shadow-brand-500/20 transition hover:scale-[1.01]"
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm shadow-md shadow-amber-600/20 transition hover:scale-[1.01]"
               >
-                <span>Proceed to Mock Checkout</span>
+                <span>{t.checkout}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>

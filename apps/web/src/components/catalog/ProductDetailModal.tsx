@@ -3,6 +3,8 @@ import { Product } from '../../types';
 import { useCartStore } from '../../store/cartStore';
 import { useAuthStore } from '../../store/authStore';
 import { useCatStore } from '../../store/catStore';
+import { useLanguageStore } from '../../store/languageStore';
+import { translations } from '../../utils/translations';
 import { X, Star, ShoppingBag, Check, ShieldCheck, Sparkles } from 'lucide-react';
 import { formatRM } from '../../utils/format';
 
@@ -15,6 +17,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
   const { addItem } = useCartStore();
   const { user, openAuthModal } = useAuthStore();
   const { activeCat } = useCatStore();
+  const { language } = useLanguageStore();
+  const t = translations[language];
+
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
 
@@ -59,7 +64,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{product.brand}</span>
             {product.isSpecialtyDiet && (
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
-                Veterinary Formula
+                {t.veterinaryFormula}
               </span>
             )}
           </div>
@@ -90,13 +95,13 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
               <div className="flex items-center gap-1 text-xs text-slate-500">
                 <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
                 <span className="font-bold text-slate-900">{product.rating.toFixed(1)}</span>
-                <span>• {product.ratingCount} reviews</span>
+                <span>• {product.ratingCount} {language === 'ms' ? 'ulasan' : 'reviews'}</span>
               </div>
 
               {/* Price */}
               <div className="py-1">
                 <span className="text-2xl font-black text-slate-900 font-sans">{formatRM(product.price)}</span>
-                <span className="text-xs text-slate-400 ml-2">Stock: {product.stockQuantity} available</span>
+                <span className="text-xs text-slate-400 ml-2">{t.stockAvailable.replace('{count}', String(product.stockQuantity))}</span>
               </div>
 
               {/* Active Cat Match Alert */}
@@ -104,9 +109,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                 <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200/60 text-emerald-900 text-xs flex items-start gap-2.5">
                   <Sparkles className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-bold">Active Cat: {activeCat.name} ({activeCat.lifeStage.toLowerCase()})</p>
+                    <p className="font-bold">{t.activeProfile}: {activeCat.name} ({String(activeCat.lifeStage || 'adult').toLowerCase()})</p>
                     <p className="text-[11px] text-emerald-700 mt-0.5">
-                      Target stage: <span className="font-semibold">{product.targetLifeStage.toLowerCase()}</span>
+                      {language === 'ms' ? 'Sasaran peringkat umur:' : 'Target stage:'} <span className="font-semibold">{product.targetLifeStage.toLowerCase()}</span>
                     </p>
                   </div>
                 </div>
@@ -114,7 +119,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
 
               {/* Target Health Focuses */}
               <div>
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Health Benefits</p>
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">{t.healthBenefits}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {product.healthFocuses.map((hf) => (
                     <span
@@ -132,14 +137,14 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
 
           {/* Description */}
           <div>
-            <h4 className="font-bold text-slate-900 text-sm mb-1.5">Description & Care Guide</h4>
+            <h4 className="font-bold text-slate-900 text-sm mb-1.5">{t.descriptionAndGuide}</h4>
             <p className="text-xs text-slate-600 leading-relaxed">{product.description}</p>
           </div>
 
           {/* Ingredients */}
           {product.ingredients && (
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/60">
-              <h4 className="font-bold text-slate-900 text-xs mb-1">Key Ingredients & Nutritional Breakdown</h4>
+              <h4 className="font-bold text-slate-900 text-xs mb-1">{t.ingredientsAndNutritional}</h4>
               <p className="text-xs text-slate-600 leading-relaxed italic">{product.ingredients}</p>
             </div>
           )}
@@ -152,19 +157,19 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
             <div className="w-full flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-semibold text-purple-700 bg-purple-50 px-3.5 py-2 rounded-xl border border-purple-200">
                 <ShieldCheck className="w-4 h-4" />
-                <span>Admin Mode: Catalog Preview Only</span>
+                <span>{t.adminPreviewOnly}</span>
               </div>
               <button
                 onClick={onClose}
                 className="px-5 py-2 rounded-2xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs shadow-xs transition hover:scale-105 active:scale-95"
               >
-                Close Preview
+                {t.closePreview}
               </button>
             </div>
           ) : (
             <>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-500">Qty:</span>
+                <span className="text-xs font-bold text-slate-500">{t.qty}:</span>
                 <div className="flex items-center border border-slate-200 rounded-xl bg-white">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -189,11 +194,11 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
               >
                 {isAdding ? (
                   <>
-                    <Check className="w-4 h-4" /> Added to Cart
+                    <Check className="w-4 h-4" /> {t.added}
                   </>
                 ) : (
                   <>
-                    <ShoppingBag className="w-4 h-4" /> Add {formatRM(Number(product.price) * quantity)}
+                    <ShoppingBag className="w-4 h-4" /> {t.addToCartPrice.replace('{price}', formatRM(Number(product.price) * quantity))}
                   </>
                 )}
               </button>

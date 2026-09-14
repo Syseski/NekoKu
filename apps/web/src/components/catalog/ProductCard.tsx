@@ -3,6 +3,8 @@ import { Product } from '../../types';
 import { useCartStore } from '../../store/cartStore';
 import { useAuthStore } from '../../store/authStore';
 import { useCatStore } from '../../store/catStore';
+import { useLanguageStore } from '../../store/languageStore';
+import { translations } from '../../utils/translations';
 import { Star, ShoppingBag, Check, Eye, Sparkles } from 'lucide-react';
 import { formatRM } from '../../utils/format';
 
@@ -15,6 +17,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails
   const { addItem, isLoading } = useCartStore();
   const { user, openAuthModal } = useAuthStore();
   const { activeCat } = useCatStore();
+  const { language } = useLanguageStore();
+  const t = translations[language];
+
   const [isAdding, setIsAdding] = useState(false);
 
   const isAdmin = user?.role === 'ADMIN';
@@ -57,6 +62,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails
 
   const primaryImage = product.images?.[0]?.url || 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=600&q=80';
 
+  const getStageLabel = (stage: string) => {
+    if (stage === 'ALL_STAGES') return t.allAges;
+    if (stage === 'KITTEN') return language === 'ms' ? 'Anak' : 'Kitten';
+    if (stage === 'ADULT') return language === 'ms' ? 'Dewasa' : 'Adult';
+    if (stage === 'SENIOR') return 'Senior';
+    return stage.toLowerCase();
+  };
+
   return (
     <div
       onClick={() => onOpenDetails(product)}
@@ -66,14 +79,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails
       {isMatchingCat && activeCat && (
         <div className="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 z-10 flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full bg-emerald-600/95 text-white text-[9px] sm:text-[10px] font-bold shadow-xs backdrop-blur-xs">
           <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-200" />
-          <span className="truncate max-w-[70px] sm:max-w-none">For {activeCat.name}</span>
+          <span className="truncate max-w-[70px] sm:max-w-none">{t.forCat.replace('{name}', activeCat.name)}</span>
         </div>
       )}
 
       {/* Specialty Diet Pill in Top-Left */}
       {product.isSpecialtyDiet && (
         <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 z-10 px-1.5 sm:px-2 py-0.5 rounded-md bg-slate-100/90 text-slate-700 text-[9px] sm:text-[10px] font-bold border border-slate-200/80 backdrop-blur-xs">
-          Vet Care
+          {t.vetCare}
         </div>
       )}
 
@@ -87,7 +100,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails
         />
         {product.stockQuantity <= 5 && (
           <div className="absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 bg-red-500 text-white text-[9px] sm:text-[10px] font-extrabold px-1 sm:px-1.5 py-0.5 rounded shadow-xs">
-            {product.stockQuantity} left
+            {t.onlyLeft.replace('{count}', String(product.stockQuantity))}
           </div>
         )}
       </div>
@@ -100,7 +113,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails
             {product.brand}
           </span>
           <span className="text-[9px] sm:text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 capitalize flex-shrink-0">
-            {product.targetLifeStage === 'ALL_STAGES' ? 'All' : product.targetLifeStage.toLowerCase()}
+            {getStageLabel(product.targetLifeStage)}
           </span>
         </div>
 
@@ -138,7 +151,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails
         {/* Footer: Price & Add to Cart */}
         <div className="mt-auto pt-2 sm:pt-3 border-t border-slate-100 flex items-center justify-between gap-1.5">
           <div>
-            <span className="text-[9px] sm:text-[10px] text-slate-400 block -mb-0.5 font-medium">Price</span>
+            <span className="text-[9px] sm:text-[10px] text-slate-400 block -mb-0.5 font-medium">{t.price}</span>
             <span className="text-sm sm:text-base font-black text-slate-900 font-sans">
               {formatRM(product.price)}
             </span>
@@ -153,7 +166,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails
               className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-[11px] sm:text-xs font-bold transition-all duration-200 hover:scale-105"
             >
               <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              <span>View</span>
+              <span>{t.view}</span>
             </button>
           ) : (
             <button
@@ -168,12 +181,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenDetails
               {isAdding ? (
                 <>
                   <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-scale-in" />
-                  <span>Added</span>
+                  <span>{t.added}</span>
                 </>
               ) : (
                 <>
                   <ShoppingBag className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                  <span>Add</span>
+                  <span>{t.add}</span>
                 </>
               )}
             </button>
