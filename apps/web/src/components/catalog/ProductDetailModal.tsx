@@ -50,7 +50,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-orange-100 my-auto flex flex-col max-h-[88vh] animate-scale-in"
+        className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200/80 my-auto flex flex-col max-h-[88vh] animate-scale-in"
       >
         
         {/* Header - Fixed & Always Visible */}
@@ -58,7 +58,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{product.brand}</span>
             {product.isSpecialtyDiet && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
                 Veterinary Formula
               </span>
             )}
@@ -77,9 +77,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
         <div className="p-6 overflow-y-auto space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
             
-            {/* Image */}
-            <div className="aspect-square rounded-2xl overflow-hidden bg-slate-50 border border-slate-100">
-              <img src={primaryImage} alt={product.name} className="w-full h-full object-cover" />
+            {/* Aspect Square Image Container */}
+            <div className="aspect-square rounded-2xl overflow-hidden bg-white border border-slate-100 p-4 flex items-center justify-center">
+              <img src={primaryImage} alt={product.name} className="w-full h-full object-contain" />
             </div>
 
             {/* Basic Info */}
@@ -94,7 +94,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
               </div>
 
               {/* Price */}
-              <div className="py-2">
+              <div className="py-1">
                 <span className="text-2xl font-black text-slate-900 font-sans">{formatRM(product.price)}</span>
                 <span className="text-xs text-slate-400 ml-2">Stock: {product.stockQuantity} available</span>
               </div>
@@ -119,7 +119,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
                   {product.healthFocuses.map((hf) => (
                     <span
                       key={hf.id || hf.focus}
-                      className="text-xs font-semibold px-2.5 py-1 rounded-xl bg-orange-50 text-orange-800 border border-orange-200"
+                      className="text-xs font-semibold px-2.5 py-1 rounded-xl bg-slate-100 text-slate-700"
                     >
                       {hf.focus.replace(/_/g, ' ').toLowerCase()}
                     </span>
@@ -185,7 +185,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ product,
               <button
                 onClick={handleAddToCart}
                 disabled={isAdding || product.stockQuantity === 0}
-                className="flex-1 max-w-xs flex items-center justify-center gap-2 py-2.5 px-5 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs shadow-md shadow-brand-500/20 transition hover:scale-[1.02] disabled:opacity-50"
+                className="flex-1 max-w-xs flex items-center justify-center gap-2 py-2.5 px-5 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-md shadow-amber-600/20 transition hover:scale-[1.02] disabled:opacity-50"
               >
                 {isAdding ? (
                   <>

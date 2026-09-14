@@ -1,27 +1,30 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
 import { Product, Category } from '../types';
-import { SmartFilters } from '../components/catalog/SmartFilters';
+import { SidebarFilters } from '../components/catalog/SidebarFilters';
 import { ProductCard } from '../components/catalog/ProductCard';
 import { ProductDetailModal } from '../components/catalog/ProductDetailModal';
 import { useCatStore } from '../store/catStore';
 import { useAuthStore } from '../store/authStore';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Filter, X, RotateCcw } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
   const { user } = useAuthStore();
   const { activeCat, recommendations } = useCatStore();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedLifeStage, setSelectedLifeStage] = useState('');
   const [selectedHealthFocus, setSelectedHealthFocus] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isFiltering, setIsFiltering] = useState(false);
-  const [batchId, setBatchId] = useState(0);
+
+  const searchQuery = searchParams.get('q') || '';
 
   // Fetch categories on mount
   useEffect(() => {
@@ -36,7 +39,7 @@ export const HomePage: React.FC = () => {
     fetchCategories();
   }, []);
 
-  // Fetch products whenever filters or search change
+  // Fetch products whenever filters or search query changes
   useEffect(() => {
     let isCancelled = false;
 
@@ -52,7 +55,6 @@ export const HomePage: React.FC = () => {
         const res = await api.get(`/products?${params.toString()}`);
         if (!isCancelled) {
           setProducts(res.data.data.products);
-          setBatchId((prev) => prev + 1);
           setIsInitialLoading(false);
           setIsFiltering(false);
         }
@@ -65,9 +67,8 @@ export const HomePage: React.FC = () => {
       }
     };
 
-    // If typing search query, debounce with 250ms. Otherwise execute immediately for instant snappy filtering.
     if (searchQuery) {
-      const timer = setTimeout(fetchProducts, 250);
+      const timer = setTimeout(fetchProducts, 200);
       return () => {
         isCancelled = true;
         clearTimeout(timer);
@@ -84,104 +85,59 @@ export const HomePage: React.FC = () => {
     setSelectedCategory('');
     setSelectedLifeStage('');
     setSelectedHealthFocus('');
-    setSearchQuery('');
+    if (searchQuery) {
+      setSearchParams((prev) => {
+        prev.delete('q');
+        return prev;
+      });
+    }
   };
 
+  const activeFilterCount =
+    (selectedCategory ? 1 : 0) +
+    (selectedLifeStage ? 1 : 0) +
+    (selectedHealthFocus ? 1 : 0) +
+    (searchQuery ? 1 : 0);
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10 animate-fade-in">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 animate-fade-in">
       
-      {/* Hero Banner with Animated Gradient & Floating Motion Elements */}
-      <section className="relative rounded-3xl bg-gradient-to-r from-orange-500 via-rose-500 to-amber-500 text-white p-8 sm:p-12 overflow-hidden shadow-2xl shadow-brand-500/25 animate-hero-gradient animate-page-enter">
-        <div className="relative z-10 max-w-2xl space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-xs font-extrabold tracking-wide shadow-md border border-white/30 animate-float-slow">
-            <Sparkles className="w-4 h-4 text-amber-200 animate-badge-wiggle" />
-            <span>CLINICALLY TARGETED FELINE NUTRITION</span>
-          </div>
-
-          <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight drop-shadow-sm">
-            Specialty Diets for Every Cat's Unique Life Stage.
-          </h1>
-
-          <p className="text-sm sm:text-base text-orange-50 font-medium leading-relaxed drop-shadow-xs">
-            From urinary health to sensitive digestion and senior kidney care — explore our complete range of certified veterinary and premium diets.
-          </p>
-
-          {activeCat && user?.role !== 'ADMIN' && (
-            <div className="pt-2 animate-page-enter">
-              <div className="inline-flex items-center gap-3 bg-white text-slate-900 px-4 py-2.5 rounded-2xl shadow-2xl text-xs font-bold hover:scale-105 transition-all duration-300">
-                <span>🐾 Active Profile: <strong>{activeCat.name}</strong> ({String(activeCat.lifeStage || 'adult').toLowerCase()})</span>
-                {Array.isArray(activeCat.healthConcerns) && activeCat.healthConcerns.length > 0 && (
-                  <span className="text-[11px] px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-semibold">
-                    {activeCat.healthConcerns
-                      .map((h: any) => (typeof h === 'string' ? h : h?.condition || '').replace(/_/g, ' '))
-                      .filter(Boolean)
-                      .join(', ')}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Floating Decorative Badges & Animated Mascot */}
-        <div className="absolute right-8 top-12 hidden lg:flex flex-col gap-3 pointer-events-none z-10">
-          <div className="animate-float-slow bg-white/90 backdrop-blur-md text-slate-800 px-4 py-2 rounded-2xl shadow-xl border border-white/40 flex items-center gap-2.5 text-xs font-bold">
-            <span className="text-lg animate-wiggle">🐟</span>
-            <div>
-              <p className="leading-tight">100% Veterinary</p>
-              <p className="text-[10px] text-slate-500 font-medium">Grade Ingredients</p>
-            </div>
-          </div>
-          <div className="animate-float-reverse bg-white/90 backdrop-blur-md text-slate-800 px-4 py-2 rounded-2xl shadow-xl border border-white/40 flex items-center gap-2.5 text-xs font-bold ml-6">
-            <span className="text-lg">✨</span>
-            <div>
-              <p className="leading-tight">Tailored Nutrition</p>
-              <p className="text-[10px] text-slate-500 font-medium">Life-stage matching</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Giant Floating Mascot */}
-        <div className="absolute right-6 -bottom-6 text-9xl select-none pointer-events-none hidden md:block animate-float-mascot opacity-45 filter drop-shadow-2xl">
-          🐈
-        </div>
-      </section>
-
-      {/* 🐾 Personalized Recommendation Row (Visible when active cat has recommendations) */}
+      {/* Personalized Recommendation Banner (Compact & High Priority) */}
       {user && user.role !== 'ADMIN' && activeCat && recommendations.length > 0 && (
-        <section className="space-y-4 bg-emerald-50/70 rounded-3xl p-6 border border-emerald-200/70 shadow-xs animate-page-enter">
-          <div className="flex items-center justify-between">
+        <section className="bg-emerald-50/80 rounded-3xl p-5 sm:p-6 border border-emerald-200/80 shadow-xs animate-page-enter">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/25 animate-pulse-glow">
-                <Sparkles className="w-5 h-5 animate-badge-wiggle" />
+              <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-xs">
+                <Sparkles className="w-4 h-4" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-slate-900">
-                  Recommended for {activeCat.name} 🐾
+                <h2 className="text-sm sm:text-base font-extrabold text-slate-900">
+                  Recommended for {activeCat.name} ({activeCat.lifeStage.toLowerCase()}) 🐾
                 </h2>
-                <p className="text-xs text-slate-500">
-                  Matched based on {activeCat.name}'s {activeCat.lifeStage.toLowerCase()} stage & health concerns
+                <p className="text-[11px] text-slate-500">
+                  Formulas matched to {activeCat.name}'s specific nutritional requirements
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {recommendations.slice(0, 4).map((product) => (
-              <div key={product.id} className="stagger-card">
-                <ProductCard
-                  product={product}
-                  onOpenDetails={setSelectedProduct}
-                />
-              </div>
+              <ProductCard
+                key={product.id}
+                product={product}
+                onOpenDetails={setSelectedProduct}
+              />
             ))}
           </div>
         </section>
       )}
 
-      {/* Main Catalog & Smart Filter Section */}
-      <section className="space-y-6">
-        <SmartFilters
+      {/* Main Two-Column Layout: Left Sidebar Filter + Right Product Catalog */}
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
+        
+        {/* Left Sidebar Filter (Desktop Sticky + Mobile Drawer) */}
+        <SidebarFilters
           categories={categories}
           selectedCategory={selectedCategory}
           onSelectCategory={setSelectedCategory}
@@ -189,25 +145,129 @@ export const HomePage: React.FC = () => {
           onSelectLifeStage={setSelectedLifeStage}
           selectedHealthFocus={selectedHealthFocus}
           onSelectHealthFocus={setSelectedHealthFocus}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
           onResetFilters={handleResetFilters}
+          isMobileOpen={isMobileFilterOpen}
+          onCloseMobile={() => setIsMobileFilterOpen(false)}
         />
 
-        {/* Product Grid */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-xs font-bold text-slate-500 flex items-center gap-2">
-              Showing <span className="text-slate-900 font-black">{products.length}</span> specialty cat products
-              {isFiltering && (
-                <span className="inline-block w-2 h-2 rounded-full bg-brand-500 animate-ping" />
+        {/* Right Column: Catalog, Quick Category Bar, & Products Grid */}
+        <main className="flex-1 w-full space-y-4">
+          
+          {/* Top Bar: Quick Primary Category Tabs & Mobile Filter Button */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 sm:p-3.5 rounded-2xl border border-slate-200/80 shadow-xs">
+            {/* Quick Horizontal Category Pill Tabs */}
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-1 sm:pb-0">
+              <button
+                onClick={() => setSelectedCategory('')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-150 flex-shrink-0 ${
+                  selectedCategory === ''
+                    ? 'bg-amber-600 text-white shadow-xs'
+                    : 'bg-slate-100/90 text-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                All
+              </button>
+              {categories.map((cat) => {
+                const isSelected = selectedCategory === cat.slug;
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(isSelected ? '' : cat.slug)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-150 flex-shrink-0 ${
+                      isSelected
+                        ? 'bg-amber-600 text-white shadow-xs'
+                        : 'bg-slate-100/90 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Mobile Filter Drawer Trigger Button */}
+            <button
+              onClick={() => setIsMobileFilterOpen(true)}
+              className="lg:hidden flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors"
+            >
+              <Filter className="w-3.5 h-3.5" />
+              <span>Filters</span>
+              {activeFilterCount > 0 && (
+                <span className="w-5 h-5 rounded-full bg-amber-600 text-white text-[10px] font-black flex items-center justify-center">
+                  {activeFilterCount}
+                </span>
               )}
-            </p>
+            </button>
           </div>
 
+          {/* Active Filter Badges & Count Row */}
+          <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-xs font-bold text-slate-500">
+                Showing <span className="text-slate-900 font-extrabold">{products.length}</span> products
+              </p>
+
+              {/* Active Filter Chips */}
+              {selectedCategory && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-900 text-[11px] font-bold border border-amber-200/60">
+                  Category: {categories.find((c) => c.slug === selectedCategory)?.name || selectedCategory}
+                  <button onClick={() => setSelectedCategory('')} className="hover:text-amber-700">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+
+              {selectedLifeStage && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-900 text-[11px] font-bold border border-amber-200/60">
+                  Stage: {selectedLifeStage.toLowerCase()}
+                  <button onClick={() => setSelectedLifeStage('')} className="hover:text-amber-700">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+
+              {selectedHealthFocus && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-900 text-[11px] font-bold border border-amber-200/60">
+                  Focus: {selectedHealthFocus.replace(/_/g, ' ').toLowerCase()}
+                  <button onClick={() => setSelectedHealthFocus('')} className="hover:text-amber-700">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+
+              {searchQuery && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800 text-[11px] font-bold border border-slate-200">
+                  Search: "{searchQuery}"
+                  <button
+                    onClick={() => {
+                      setSearchParams((prev) => {
+                        prev.delete('q');
+                        return prev;
+                      });
+                    }}
+                    className="hover:text-slate-600"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+            </div>
+
+            {activeFilterCount > 0 && (
+              <button
+                onClick={handleResetFilters}
+                className="text-xs font-bold text-amber-600 hover:text-amber-700 underline flex items-center gap-1"
+              >
+                <RotateCcw className="w-3 h-3" />
+                Clear all filters
+              </button>
+            )}
+          </div>
+
+          {/* Product Grid */}
           {isInitialLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 py-12">
-              {[...Array(8)].map((_, i) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 py-4">
+              {[...Array(6)].map((_, i) => (
                 <div key={i} className="bg-white rounded-3xl p-4 border border-slate-100 animate-pulse space-y-3 shadow-xs">
                   <div className="aspect-square bg-slate-100 rounded-2xl" />
                   <div className="h-4 bg-slate-100 rounded w-3/4" />
@@ -216,10 +276,7 @@ export const HomePage: React.FC = () => {
               ))}
             </div>
           ) : products.length > 0 ? (
-            <div
-              key={batchId}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-            >
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
               {products.map((product) => (
                 <div key={product.id} className="stagger-card">
                   <ProductCard
@@ -230,20 +287,23 @@ export const HomePage: React.FC = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-16 bg-white rounded-3xl border border-orange-100 p-8 shadow-xs animate-scale-in">
-              <span className="text-4xl block mb-2 animate-bounce">🔍</span>
-              <h3 className="text-base font-bold text-slate-800">No products match the selected filters</h3>
-              <p className="text-xs text-slate-500 mt-1 mb-4">Try clearing one of the life-stage or health focus filters.</p>
+            <div className="text-center py-16 bg-white rounded-3xl border border-slate-200/80 p-8 shadow-xs animate-scale-in space-y-3">
+              <span className="text-4xl block mb-2">🔍</span>
+              <h3 className="text-base font-bold text-slate-800">No products match your selected filters</h3>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                Try adjusting your search terms, life stage, or dietary health filters to discover more items.
+              </p>
               <button
                 onClick={handleResetFilters}
-                className="px-5 py-2.5 rounded-2xl bg-brand-500 text-white font-bold text-xs shadow-md shadow-brand-500/20 hover:bg-brand-600 hover:scale-105 active:scale-95 transition-all"
+                className="px-5 py-2.5 rounded-2xl bg-amber-600 text-white font-bold text-xs shadow-md shadow-amber-600/20 hover:bg-amber-700 hover:scale-105 active:scale-95 transition-all"
               >
-                Reset Filters
+                Clear all filters
               </button>
             </div>
           )}
-        </div>
-      </section>
+
+        </main>
+      </div>
 
       {/* Product Details Modal */}
       {selectedProduct && (

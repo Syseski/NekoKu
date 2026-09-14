@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { useCartStore } from '../../store/cartStore';
 import { CatSelector } from './CatSelector';
-import { ShoppingBag, ShieldCheck, Heart, User, LogOut, Package, MapPin, Settings } from 'lucide-react';
+import { ShoppingBag, ShieldCheck, Heart, User, LogOut, Package, MapPin, Search, X } from 'lucide-react';
 
 interface NavbarProps {
   onOpenAuthModal: () => void;
@@ -11,24 +11,76 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ onOpenAuthModal }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, logout } = useAuthStore();
   const { cart, openCart } = useCartStore();
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  
+  const currentSearch = searchParams.get('q') || '';
+  const [searchValue, setSearchValue] = useState(currentSearch);
+
+  useEffect(() => {
+    setSearchValue(searchParams.get('q') || '');
+  }, [searchParams]);
 
   const isAdmin = user?.role === 'ADMIN';
   const totalCartCount = cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (location.pathname === '/') {
+      if (searchValue.trim()) {
+        setSearchParams((prev) => {
+          prev.set('q', searchValue.trim());
+          return prev;
+        });
+      } else {
+        setSearchParams((prev) => {
+          prev.delete('q');
+          return prev;
+        });
+      }
+    } else {
+      navigate(`/?q=${encodeURIComponent(searchValue.trim())}`);
+    }
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearchValue(val);
+    if (location.pathname === '/') {
+      setSearchParams((prev) => {
+        if (val.trim()) {
+          prev.set('q', val.trim());
+        } else {
+          prev.delete('q');
+        }
+        return prev;
+      });
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchValue('');
+    if (location.pathname === '/') {
+      setSearchParams((prev) => {
+        prev.delete('q');
+        return prev;
+      });
+    }
+  };
+
   return (
-    <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-md border-b border-orange-100 shadow-xs transition-all duration-300">
+    <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-xs transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-4">
+        <div className="flex items-center justify-between h-16 gap-3 sm:gap-4">
           
           {/* Brand Logo */}
           <Link to="/" className="flex items-center group flex-shrink-0">
             <img
               src="/logo.png"
               alt="NekoKu - Loves Every Meow"
-              className="h-12 sm:h-13 w-auto max-w-[200px] object-contain group-hover:scale-105 transition-transform duration-200"
+              className="h-10 sm:h-12 w-auto max-w-[160px] sm:max-w-[190px] object-contain group-hover:scale-105 transition-transform duration-200"
               onError={(e) => {
                 const target = e.currentTarget;
                 if (!target.src.endsWith('/logo.svg')) {
@@ -38,39 +90,60 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuthModal }) => {
             />
           </Link>
 
-          {/* Navigation Links */}
-          {isAdmin && (
-            <nav className="hidden md:flex items-center gap-6 text-sm font-semibold">
-              <Link
-                to="/admin"
-                className={`flex items-center gap-1 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 ${
-                  location.pathname === '/admin'
-                    ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20 scale-105'
-                    : 'bg-purple-50 text-purple-700 hover:bg-purple-100 hover:scale-105 border border-purple-200/80'
-                }`}
-              >
-                <ShieldCheck className="w-4 h-4" />
-                Admin Dashboard
-              </Link>
-            </nav>
-          )}
+          {/* Integrated Header Search Bar */}
+          <div className="flex-1 max-w-md mx-2 sm:mx-4">
+            <form onSubmit={handleSearchSubmit} className="relative">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={searchValue}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder="Search food, ingredients, formulas..."
+                className="w-full pl-9 pr-8 py-2 bg-slate-100/90 hover:bg-slate-100 border border-transparent focus:border-amber-500 focus:bg-white rounded-full text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all duration-200"
+              />
+              {searchValue && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </form>
+          </div>
 
           {/* Right Action Icons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             
             {/* Active Cat Profile Quick Selector (Customers only) */}
             {!isAdmin && <CatSelector />}
 
-            {/* Cart Drawer Trigger - Only for customers / visitors, hidden for admin */}
+            {/* Admin Console shortcut for admin */}
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className={`hidden sm:flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+                  location.pathname === '/admin'
+                    ? 'bg-purple-600 text-white shadow-xs'
+                    : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200/80'
+                }`}
+              >
+                <ShieldCheck className="w-4 h-4" />
+                Admin
+              </Link>
+            )}
+
+            {/* Cart Drawer Trigger */}
             {!isAdmin && (
               <button
                 onClick={openCart}
                 aria-label="Shopping Cart"
-                className="relative p-2.5 rounded-full bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-brand-300 text-slate-700 hover:scale-105 active:scale-95 transition-all duration-200 shadow-xs"
+                className="relative p-2.5 rounded-full bg-slate-50 hover:bg-amber-50 border border-slate-200 hover:border-amber-300 text-slate-700 hover:scale-105 active:scale-95 transition-all duration-200 shadow-xs"
               >
                 <ShoppingBag className="w-5 h-5 text-slate-800" />
                 {totalCartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-brand-500 text-white rounded-full text-[11px] font-black flex items-center justify-center animate-bounce shadow-md shadow-brand-500/30">
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-amber-600 text-white rounded-full text-[11px] font-black flex items-center justify-center animate-bounce shadow-md shadow-amber-600/30">
                     {totalCartCount}
                   </span>
                 )}
@@ -82,13 +155,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuthModal }) => {
               <div className="relative">
                 <button
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  className="flex items-center gap-2 p-1 rounded-full hover:ring-2 hover:ring-brand-500/20 transition-all duration-200 active:scale-95"
+                  className="flex items-center gap-2 p-1 rounded-full hover:ring-2 hover:ring-amber-500/20 transition-all duration-200 active:scale-95"
                 >
                   {user.avatarUrl ? (
                     <img
                       src={user.avatarUrl}
                       alt={user.fullName}
-                      className="w-8 h-8 rounded-full object-cover border border-brand-200 shadow-xs"
+                      className="w-8 h-8 rounded-full object-cover border border-amber-200 shadow-xs bg-white"
                     />
                   ) : (
                     <div className={`w-8 h-8 rounded-full text-white flex items-center justify-center font-bold text-xs shadow-xs ${
@@ -122,27 +195,27 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuthModal }) => {
                         <Link
                           to="/account?tab=profile"
                           onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-orange-50 hover:text-brand-600 rounded-xl transition-colors"
+                          className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-amber-50 hover:text-amber-700 rounded-xl transition-colors"
                         >
-                          <User className="w-3.5 h-3.5 text-brand-500" />
+                          <User className="w-3.5 h-3.5 text-amber-600" />
                           My Account / Profile
                         </Link>
                         
                         <Link
                           to="/account?tab=addresses"
                           onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-orange-50 hover:text-brand-600 rounded-xl transition-colors"
+                          className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-amber-50 hover:text-amber-700 rounded-xl transition-colors"
                         >
-                          <MapPin className="w-3.5 h-3.5 text-brand-500" />
+                          <MapPin className="w-3.5 h-3.5 text-amber-600" />
                           My Address
                         </Link>
 
                         <Link
                           to="/orders"
                           onClick={() => setUserDropdownOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-orange-50 hover:text-brand-600 rounded-xl transition-colors"
+                          className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-amber-50 hover:text-amber-700 rounded-xl transition-colors"
                         >
-                          <Package className="w-3.5 h-3.5 text-brand-500" />
+                          <Package className="w-3.5 h-3.5 text-amber-600" />
                           My Orders
                         </Link>
 
@@ -150,9 +223,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuthModal }) => {
                           <Link
                             to="/cats"
                             onClick={() => setUserDropdownOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-orange-50 hover:text-brand-600 rounded-xl transition-colors"
+                            className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-amber-50 hover:text-amber-700 rounded-xl transition-colors"
                           >
-                            <Heart className="w-3.5 h-3.5 text-brand-500" />
+                            <Heart className="w-3.5 h-3.5 text-amber-600" />
                             My Cat Profiles
                           </Link>
                         )}
@@ -188,7 +261,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuthModal }) => {
             ) : (
               <button
                 onClick={onOpenAuthModal}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shadow-md shadow-brand-500/20 hover:scale-105 active:scale-95 transition-all duration-200"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-md shadow-amber-600/20 hover:scale-105 active:scale-95 transition-all duration-200"
               >
                 <User className="w-3.5 h-3.5" />
                 Sign In
