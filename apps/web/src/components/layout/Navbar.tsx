@@ -38,21 +38,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuthModal }) => {
             />
           </Link>
 
-          {/* Navigation Links - Cleaned up to only show Catalog */}
-          <nav className="hidden md:flex items-center gap-6 text-sm font-semibold">
-            <Link
-              to="/"
-              className={`relative py-1 transition-colors duration-200 ${
-                location.pathname === '/' ? 'text-brand-600 font-bold' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Catalog & Nutrition
-              {location.pathname === '/' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-500 rounded-full animate-scale-in" />
-              )}
-            </Link>
-
-            {isAdmin && (
+          {/* Navigation Links */}
+          {isAdmin && (
+            <nav className="hidden md:flex items-center gap-6 text-sm font-semibold">
               <Link
                 to="/admin"
                 className={`flex items-center gap-1 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 ${
@@ -64,8 +52,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuthModal }) => {
                 <ShieldCheck className="w-4 h-4" />
                 Admin Dashboard
               </Link>
-            )}
-          </nav>
+            </nav>
+          )}
 
           {/* Right Action Icons */}
           <div className="flex items-center gap-3">
